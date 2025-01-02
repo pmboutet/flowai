@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from openai import OpenAI
+from anthropic import Anthropic
 import requests
 from django.conf import settings
 
@@ -15,7 +16,7 @@ class OpenAIProvider(AIProvider):
     
     def generate_response(self, prompt):
         completion = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Utilisation de gpt-3.5-turbo au lieu de gpt-4
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Vous êtes un assistant IA utile et professionnel."},
                 {"role": "user", "content": prompt}
@@ -27,6 +28,28 @@ class OpenAIProvider(AIProvider):
             'prompt_tokens': completion.usage.prompt_tokens,
             'completion_tokens': completion.usage.completion_tokens,
             'total_tokens': completion.usage.total_tokens
+        }
+
+class ClaudeProvider(AIProvider):
+    def __init__(self, api_key):
+        self.client = Anthropic(api_key=api_key)
+    
+    def generate_response(self, prompt):
+        message = self.client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1000,
+            messages=[{
+                "role": "user",
+                "content": prompt
+            }],
+            system="Vous êtes un assistant IA utile et professionnel."
+        )
+        
+        return {
+            'response': message.content[0].text,
+            'prompt_tokens': message.usage.input_tokens,
+            'completion_tokens': message.usage.output_tokens,
+            'total_tokens': message.usage.input_tokens + message.usage.output_tokens
         }
 
 class GrokProvider(AIProvider):
@@ -66,7 +89,8 @@ class GrokProvider(AIProvider):
 class AIService:
     providers = {
         'openai': OpenAIProvider,
-        'grok': GrokProvider
+        'grok': GrokProvider,
+        'claude': ClaudeProvider
     }
     
     @classmethod
@@ -76,6 +100,8 @@ class AIService:
             
         if provider_name == 'openai':
             api_key = settings.OPENAI_API_KEY
+        elif provider_name == 'claude':
+            api_key = settings.ANTHROPIC_API_KEY
         else:  # grok
             api_key = settings.GROK_API_KEY
             
