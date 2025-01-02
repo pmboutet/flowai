@@ -8,3 +8,4 @@ google-auth>=2.22.0
 google-api-python-client>=2.100.0
 social-auth-app-django>=5.3.0
 django-filter>=23.5
+anthropic>=0.8.0
