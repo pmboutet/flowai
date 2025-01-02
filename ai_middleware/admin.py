@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.template.response import TemplateResponse
 from .models import (Client, Programme, Sponsor, Session,
                     Sequence, BreakOut, Conversation)
 
@@ -43,6 +44,8 @@ class SequenceInline(admin.TabularInline):
     model = Sequence
     extra = 1
     ordering = ['order']
+    classes = ['sortable-sequence-inline']
+    template = 'admin/ai_middleware/sequence/edit_inline/tabular.html'
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
@@ -51,6 +54,18 @@ class SessionAdmin(admin.ModelAdmin):
     search_fields = ['title', 'context', 'objectives']
     filter_horizontal = ['sponsors']
     inlines = [SequenceInline]
+    
+    # Template personnalisé pour l'éditeur riche
+    change_form_template = 'admin/ai_middleware/session/change_form.html'
+    
+    class Media:
+        css = {
+            'all': ['ai_middleware/admin/css/custom_admin.css']
+        }
+        js = [
+            'https://cdn.quilljs.com/1.3.6/quill.min.js',
+            'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
+        ]
     
     def total_sequences(self, obj):
         return obj.sequences.count()
@@ -62,12 +77,27 @@ class BreakOutInline(admin.TabularInline):
 
 @admin.register(Sequence)
 class SequenceAdmin(admin.ModelAdmin):
-    list_display = ['title', 'session', 'order', 'total_breakouts', 
+    list_display = ['title', 'session', 'order_handle', 'total_breakouts', 
                    'drive_links', 'created_at']
     list_filter = ['session__client', 'session', 'created_at']
     search_fields = ['title', 'objective']
     ordering = ['session', 'order']
     inlines = [BreakOutInline]
+    
+    # Template personnalisé pour le drag & drop et la prévisualisation Drive
+    change_list_template = 'admin/ai_middleware/sequence/change_list.html'
+    change_form_template = 'admin/ai_middleware/sequence/change_form.html'
+    
+    class Media:
+        css = {
+            'all': ['ai_middleware/admin/css/custom_admin.css']
+        }
+    
+    def order_handle(self, obj):
+        return format_html(
+            '<span class="sequence-order-handle" data-id="{}">☰ {}</span>',
+            obj.id, obj.order
+        )
     
     def total_breakouts(self, obj):
         return obj.breakouts.count()
@@ -75,11 +105,18 @@ class SequenceAdmin(admin.ModelAdmin):
     def drive_links(self, obj):
         links = []
         if obj.input_drive_url:
-            links.append(format_html('<a href="{}" target="_blank">📥 Inputs</a>', obj.input_drive_url))
+            links.append(format_html(
+                '<a href="{}" class="drive-preview-link" target="_blank">📥 Inputs</a>',
+                obj.input_drive_url
+            ))
         if obj.output_drive_url:
-            links.append(format_html('<a href="{}" target="_blank">📤 Outputs</a>', obj.output_drive_url))
+            links.append(format_html(
+                '<a href="{}" class="drive-preview-link" target="_blank">📤 Outputs</a>',
+                obj.output_drive_url
+            ))
         return format_html(' | '.join(links) if links else '-')
     
+    order_handle.short_description = 'Ordre'
     total_breakouts.short_description = 'Breakouts'
     drive_links.short_description = 'Google Drive'
 
