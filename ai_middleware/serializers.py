@@ -46,3 +46,30 @@ class SessionSerializer(serializers.ModelSerializer):
                  'design_principles', 'deliverables', 'sponsors', 
                  'sequences', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+class ProgrammeSerializer(serializers.ModelSerializer):
+    sessions = SessionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Programme
+        fields = ['id', 'name', 'client', 'description', 'sessions', 
+                 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+class ClientSerializer(serializers.ModelSerializer):
+    programmes = ProgrammeSerializer(many=True, read_only=True)
+    sponsors = SponsorSerializer(many=True, read_only=True)
+    sessions = SessionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Client
+        fields = ['id', 'name', 'context', 'objectives', 'programmes', 
+                 'sponsors', 'sessions', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+class ClientLightSerializer(serializers.ModelSerializer):
+    """Version allégée du sérialiseur Client pour les listes et les références"""
+    class Meta:
+        model = Client
+        fields = ['id', 'name', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
