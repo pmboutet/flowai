@@ -2,6 +2,8 @@ import os
 from abc import ABC, abstractmethod
 from openai import OpenAI
 from anthropic import Anthropic
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 import requests
 from django.conf import settings
 
@@ -52,6 +54,28 @@ class ClaudeProvider(AIProvider):
             'total_tokens': message.usage.input_tokens + message.usage.output_tokens
         }
 
+class MistralProvider(AIProvider):
+    def __init__(self, api_key):
+        self.client = MistralClient(api_key=api_key)
+    
+    def generate_response(self, prompt):
+        messages = [
+            ChatMessage(role="system", content="Vous êtes un assistant IA utile et professionnel."),
+            ChatMessage(role="user", content=prompt)
+        ]
+
+        chat_response = self.client.chat(
+            model="mistral-large-latest",
+            messages=messages
+        )
+        
+        return {
+            'response': chat_response.choices[0].message.content,
+            'prompt_tokens': chat_response.usage.prompt_tokens,
+            'completion_tokens': chat_response.usage.completion_tokens,
+            'total_tokens': chat_response.usage.total_tokens
+        }
+
 class GrokProvider(AIProvider):
     def __init__(self, api_key):
         self.api_key = api_key
@@ -90,7 +114,8 @@ class AIService:
     providers = {
         'openai': OpenAIProvider,
         'grok': GrokProvider,
-        'claude': ClaudeProvider
+        'claude': ClaudeProvider,
+        'mistral': MistralProvider
     }
     
     @classmethod
@@ -102,6 +127,8 @@ class AIService:
             api_key = settings.OPENAI_API_KEY
         elif provider_name == 'claude':
             api_key = settings.ANTHROPIC_API_KEY
+        elif provider_name == 'mistral':
+            api_key = settings.MISTRAL_API_KEY
         else:  # grok
             api_key = settings.GROK_API_KEY
             
