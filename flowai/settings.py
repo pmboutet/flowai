@@ -11,6 +11,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 GROK_API_KEY = os.getenv('GROK_API_KEY')
 GROK_API_URL = os.getenv('GROK_API_URL', 'https://api.grok.ai')
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
 DEBUG = True
 
