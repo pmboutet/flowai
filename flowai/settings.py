@@ -4,11 +4,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# ... [autres configurations existantes] ...
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key')
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-GROK_API_KEY = os.getenv('GROK_API_KEY')
-GROK_API_URL = os.getenv('GROK_API_URL', 'https://api.grok.ai')
+# Configuration Google OAuth2
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('GOOGLE_OAUTH2_CLIENT_ID')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'openid',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/drive.file'
+]
 
-# Le reste du fichier settings.py reste inchangé...
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+INSTALLED_APPS += [
+    'social_django',
+]
