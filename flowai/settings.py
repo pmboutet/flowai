@@ -10,6 +10,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 GROK_API_KEY = os.getenv('GROK_API_KEY')
 GROK_API_URL = os.getenv('GROK_API_URL', 'https://api.grok.ai')
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 DEBUG = True
 
@@ -35,7 +36,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'social_django.middleware.SocialAuthExceptionMiddleware',  # Ajout du middleware Social Auth
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'flowai.urls'
@@ -51,8 +52,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',  # Ajout pour Social Auth
-                'social_django.context_processors.login_redirect',  # Ajout pour Social Auth
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -93,7 +94,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/drive.file'
 ]
 
-# Redirections après authentification
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/admin/'
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/admin/'
