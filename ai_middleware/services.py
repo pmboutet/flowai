@@ -15,7 +15,7 @@ class OpenAIProvider(AIProvider):
     
     def generate_response(self, prompt):
         completion = self.client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",  # Utilisation de gpt-3.5-turbo au lieu de gpt-4
             messages=[
                 {"role": "system", "content": "Vous êtes un assistant IA utile et professionnel."},
                 {"role": "user", "content": prompt}
