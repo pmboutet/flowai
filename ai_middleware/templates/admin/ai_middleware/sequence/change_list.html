@@ -1,0 +1,40 @@
+{% extends 'admin/change_list.html' %}
+{% load static %}
+
+{% block content %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.querySelector('#result_list tbody');
+    
+    if (tbody) {
+      Sortable.create(tbody, {
+        handle: '.sequence-order-handle',
+        animation: 150,
+        onEnd: function(evt) {
+          const rows = tbody.getElementsByTagName('tr');
+          const updates = [];
+          
+          for (let i = 0; i < rows.length; i++) {
+            const id = rows[i].dataset.id;
+            updates.push({
+              id: id,
+              order: i + 1
+            });
+          }
+          
+          // Mise à jour de l'ordre via l'API
+          fetch('/api/sequences/reorder/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ updates: updates })
+          });
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

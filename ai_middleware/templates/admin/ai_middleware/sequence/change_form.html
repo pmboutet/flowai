@@ -1,0 +1,28 @@
+{% extends 'admin/change_form.html' %}
+{% load static %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="drive-preview module">
+  <h2>Prévisualisation Google Drive</h2>
+  
+  {% if original.input_drive_url %}
+  <div class="input-preview">
+    <h3>Inputs</h3>
+    <iframe src="{{ original.input_drive_url }}/preview" 
+            class="preview-drive-frame"
+            allowfullscreen></iframe>
+  </div>
+  {% endif %}
+  
+  {% if original.output_drive_url %}
+  <div class="output-preview">
+    <h3>Outputs</h3>
+    <iframe src="{{ original.output_drive_url }}/preview" 
+            class="preview-drive-frame"
+            allowfullscreen></iframe>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
