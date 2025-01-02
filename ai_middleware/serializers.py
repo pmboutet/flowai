@@ -27,3 +27,22 @@ class SequenceSerializer(serializers.ModelSerializer):
                  'input_text', 'output_drive_url', 'output_text', 'order', 
                  'breakouts', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+class SponsorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sponsor
+        fields = ['id', 'name', 'job_title', 'objectives', 'client', 
+                 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+class SessionSerializer(serializers.ModelSerializer):
+    sequences = SequenceSerializer(many=True, read_only=True)
+    sponsors = SponsorSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Session
+        fields = ['id', 'title', 'programme', 'client', 'context', 
+                 'objectives', 'inputs', 'outputs', 'participants', 
+                 'design_principles', 'deliverables', 'sponsors', 
+                 'sequences', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
