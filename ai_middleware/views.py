@@ -13,7 +13,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         try:
-            provider = serializer.validated_data.get('provider', 'openai')
+            provider = serializer.validated_data.get('provider', 'grok')
             ai_service = AIService.get_provider(provider)
             
             result = ai_service.generate_response(
