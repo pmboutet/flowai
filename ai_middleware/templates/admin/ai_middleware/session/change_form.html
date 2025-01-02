@@ -9,42 +9,59 @@
 <link rel="stylesheet" href="{% static 'ai_middleware/admin/css/custom_admin.css' %}">
 {% endblock %}
 
+{% block object-tools %}
+{{ block.super }}
+<div class="google-drive-tools">
+    <h3>Google Drive</h3>
+    {% if google_auth and google_auth.drive_enabled %}
+        <button id="createFoldersBtn" class="button" type="button">
+            Créer la structure de dossiers
+        </button>
+        <p class="help">Crée automatiquement les dossiers pour la session et les séquences</p>
+    {% else %}
+        <p>
+            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}" 
+               class="button">
+                Connecter Google Drive
+            </a>
+        </p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createFoldersBtn = document.getElementById('createFoldersBtn');
+    if (createFoldersBtn) {
+        createFoldersBtn.addEventListener('click', function() {
+            fetch('/api/google/create-session-folders/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    session_id: '{{ object_id }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erreur : ' + data.error);
+                } else {
+                    alert('Dossiers créés avec succès !');
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                alert('Erreur lors de la création des dossiers : ' + error);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+
 {% block content %}
 {{ block.super }}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Configuration de l'éditeur riche pour les champs texte
-    const textFields = ['context', 'objectives', 'inputs', 'outputs', 
-                       'participants', 'design_principles', 'deliverables'];
-    
-    textFields.forEach(field => {
-      const textarea = document.getElementById('id_' + field);
-      if (textarea) {
-        const container = document.createElement('div');
-        container.innerHTML = textarea.value;
-        textarea.parentNode.insertBefore(container, textarea);
-        textarea.style.display = 'none';
-        
-        const quill = new Quill(container, {
-          theme: 'snow',
-          modules: {
-            toolbar: [
-              [{ 'header': [1, 2, 3, false] }],
-              ['bold', 'italic', 'underline'],
-              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-              ['link', 'image'],
-              ['clean']
-            ]
-          }
-        });
-        
-        // Mise à jour du textarea avant soumission
-        const form = textarea.form;
-        form.addEventListener('submit', function() {
-          textarea.value = quill.root.innerHTML;
-        });
-      }
-    });
-  });
-</script>
+<!-- Le reste du contenu existant -->
 {% endblock %}
