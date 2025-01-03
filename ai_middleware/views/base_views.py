@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db import models
 from ..models import BreakOut, Sequence
 from ..serializers import BreakOutSerializer, SequenceSerializer
 
@@ -61,6 +62,40 @@ class SequenceViewSet(viewsets.ModelViewSet):
         if session_id:
             queryset = queryset.filter(session_id=session_id)
         return queryset
+
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        
+        sequences = []
+        errors = []
+        
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                # Si l'ordre n'est pas spécifié, le mettre à la fin
+                if 'order' not in item:
+                    max_order = Sequence.objects.filter(
+                        session_id=item['session'].id
+                    ).aggregate(max_order=models.Max('order'))['max_order'] or 0
+                    item['order'] = max_order + 1
+                
+                sequence = Sequence.objects.create(**item)
+                sequences.append(sequence)
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e)
+                })
+        
+        response_data = {
+            "success": self.get_serializer(sequences, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+            
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def reorder(self, request, pk=None):
