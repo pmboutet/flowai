@@ -20,6 +20,33 @@ class BreakOutViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(sequence_id=sequence_id)
         return queryset
 
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        
+        breakouts = []
+        errors = []
+        
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                breakout = BreakOut.objects.create(**item)
+                breakouts.append(breakout)
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e)
+                })
+        
+        response_data = {
+            "success": self.get_serializer(breakouts, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+            
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
 class SequenceViewSet(viewsets.ModelViewSet):
     queryset = Sequence.objects.all()
     serializer_class = SequenceSerializer
