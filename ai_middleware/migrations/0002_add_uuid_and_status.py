@@ -36,6 +36,11 @@ class Migration(migrations.Migration):
             field=models.UUIDField(default=gen_uuid, editable=False, unique=True),
         ),
         migrations.AddField(
+            model_name='sponsor',
+            name='uuid',
+            field=models.UUIDField(default=gen_uuid, editable=False, unique=True),
+        ),
+        migrations.AddField(
             model_name='client',
             name='status',
             field=models.CharField(choices=[("normal", "Normal"), ("deleted", "Deleted"), ("archived", "Archived")], default="normal", max_length=10),
@@ -57,6 +62,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='breakout',
+            name='status',
+            field=models.CharField(choices=[("normal", "Normal"), ("deleted", "Deleted"), ("archived", "Archived")], default="normal", max_length=10),
+        ),
+        migrations.AddField(
+            model_name='sponsor',
             name='status',
             field=models.CharField(choices=[("normal", "Normal"), ("deleted", "Deleted"), ("archived", "Archived")], default="normal", max_length=10),
         ),
