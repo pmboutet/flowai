@@ -18,6 +18,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost']
 
 INSTALLED_APPS = [
+    'unfold',  # Ajout de unfold avant admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +57,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
+                'unfold.context_processors.theme',  # Ajout du context processor pour unfold
             ],
         },
     },
@@ -101,6 +103,17 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/drive.readonly',
     'https://www.googleapis.com/auth/drive.file'
 ]
+
+# Configuration Unfold
+UNFOLD = {
+    "SITE_TITLE": "FlowAI Admin",
+    "SITE_HEADER": "FlowAI Administration",
+    "SITE_URL": "/admin",
+    "MENU_ALIGN": "top",  # ou 'left'
+    "STYLES": [
+        "primary",  # style par défaut
+    ],
+}
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/admin/'
