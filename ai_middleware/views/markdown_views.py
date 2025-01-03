@@ -1,12 +1,21 @@
 from rest_framework import views, status
 from rest_framework.response import Response
 from ..services.markdown_service import to_markdown, from_markdown
+from ..models import Client, Programme, Session, Sequence, BreakOut
 
 class MarkdownExportView(views.APIView):
-    def get(self, request, model_type, uuid):
+    def get(self, request, uuid):
         try:
-            markdown = to_markdown(uuid, model_type)
-            return Response({'markdown': markdown})
+            # Check each model type for the UUID
+            for model in [Client, Programme, Session, Sequence, BreakOut]:
+                try:
+                    obj = model.objects.get(uuid=uuid)
+                    markdown = to_markdown(uuid, model.__name__.lower())
+                    return Response({'markdown': markdown})
+                except model.DoesNotExist:
+                    continue
+            
+            return Response({'error': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
