@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 class Conversation(models.Model):
     PROVIDER_CHOICES = [
         ('grok', 'Grok'),
-        ('openai', 'OpenAI')
+        ('openai', 'OpenAI'),
+        ('claude', 'Claude'),
+        ('mistral', 'Mistral')
     ]
     
     created_at = models.DateTimeField(default=timezone.now)
