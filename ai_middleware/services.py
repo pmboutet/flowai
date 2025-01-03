@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from openai import OpenAI
 from anthropic import Anthropic
 from mistralai.client import MistralClient
-from mistralai.models.chat import ChatMessage
 import requests
 from django.conf import settings
 
