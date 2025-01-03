@@ -32,3 +32,15 @@ class MarkdownExportView(views.APIView):
             return Response({'error': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class MarkdownImportView(views.APIView):
+    def post(self, request):
+        try:
+            markdown = request.data.get('markdown')
+            if not markdown:
+                return Response({'error': 'Markdown content is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            objects = from_markdown(markdown)
+            return Response({'message': f'{len(objects)} objects processed'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
