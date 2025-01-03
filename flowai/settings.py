@@ -57,7 +57,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
-                'unfold.context_processors.theme',  # Ajout du context processor pour unfold
             ],
         },
     },
@@ -109,10 +108,8 @@ UNFOLD = {
     "SITE_TITLE": "FlowAI Admin",
     "SITE_HEADER": "FlowAI Administration",
     "SITE_URL": "/admin",
-    "MENU_ALIGN": "top",  # ou 'left'
-    "STYLES": [
-        "primary",  # style par défaut
-    ],
+    "MENU_ALIGN": "top",
+    "STYLES": ["primary"],
 }
 
 LOGIN_URL = 'login'
