@@ -1,3 +1,5 @@
+import re
+import uuid
 from .models import Client, Programme, Session, Sequence, BreakOut
 
 def model_to_markdown(model_instance, level=1):
@@ -15,7 +17,7 @@ def model_to_markdown(model_instance, level=1):
 
     return markdown
 
-def to_markdown(uuid, model_type):
+def to_markdown(uuid_str, model_type):
     """Generate markdown for a model and its relations"""
     models = {
         'client': Client,
@@ -29,7 +31,7 @@ def to_markdown(uuid, model_type):
         raise ValueError(f"Invalid model type: {model_type}")
 
     model_class = models[model_type.lower()]
-    instance = model_class.objects.get(uuid=uuid)
+    instance = model_class.objects.get(uuid=uuid_str)
     markdown = model_to_markdown(instance)
 
     # Add related objects based on model type
@@ -54,3 +56,76 @@ def to_markdown(uuid, model_type):
             markdown += model_to_markdown(breakout, 2)
 
     return markdown
+
+def parse_markdown_section(text):
+    """Parse a markdown section to extract model type, uuid and fields"""
+    # Extract model type and uuid from header
+    header_match = re.search(r'[@(\w+)::(\w+-\w+-\w+-\w+-\w+)]', text)
+    if not header_match:
+        return None
+
+    model_type, uuid_str = header_match.groups()
+    
+    # Extract fields
+    fields = {}
+    for line in text.split('\n'):
+        field_match = re.match(r'\*\*(\w+)\*\*:\s*(.+)', line)
+        if field_match:
+            field_name, value = field_match.groups()
+            fields[field_name] = value.strip()
+            
+    return {
+        'model_type': model_type.lower(),
+        'uuid': uuid_str,
+        'fields': fields
+    }
+
+def from_markdown(markdown_text):
+    """Create or update objects from markdown text"""
+    models = {
+        'client': Client,
+        'programme': Programme,
+        'session': Session,
+        'sequence': Sequence,
+        'breakout': BreakOut
+    }
+
+    # Split markdown into sections based on headers
+    sections = re.split(r'(?=^#+ \[@)', markdown_text, flags=re.MULTILINE)
+    
+    # Process each section
+    created_objects = []
+    for section in sections:
+        if not section.strip():
+            continue
+            
+        parsed = parse_markdown_section(section)
+        if not parsed:
+            continue
+
+        model_class = models.get(parsed['model_type'])
+        if not model_class:
+            continue
+
+        # Create or update object
+        if parsed['uuid']:
+            obj, created = model_class.objects.update_or_create(
+                uuid=uuid.UUID(parsed['uuid']),
+                defaults={
+                    **parsed['fields'],
+                    'status': 'normal'
+                }
+            )
+        else:
+            obj = model_class.objects.create(
+                **parsed['fields'],
+                uuid=uuid.uuid4(),
+                status='normal'
+            )
+
+        created_objects.append(obj)
+
+    # Mark objects as deleted if they're not in the markdown
+    # This depends on the hierarchy of objects and should be implemented based on requirements
+
+    return created_objects
