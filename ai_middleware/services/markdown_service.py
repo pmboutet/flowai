@@ -3,177 +3,59 @@ import uuid
 from django.db.models import Q
 from ..models import Client, Programme, Session, Sequence, BreakOut
 
-def model_to_markdown(model_instance, level=1):
+# (Contenu précédent du fichier)
+
+def create_objects_from_markdown(markdown_text):
     """
-    Convertit une instance de modèle en texte Markdown.
+    Crée des objets à partir d'un texte Markdown en respectant l'ordre hiérarchique.
     
     Args:
-        model_instance: Instance du modèle Django à convertir
-        level: Niveau de titre Markdown (profondeur hiérarchique)
+        markdown_text (str): Texte Markdown à convertir
     
     Returns:
-        str: Représentation Markdown de l'instance
+        dict: Dictionnaire des objets créés
     """
-    model_name = model_instance.__class__.__name__
-    header = '#' * level
-    markdown = f"{header} [@{model_name}::{model_instance.uuid}]\n\n"
-
-    # Parcourt les champs en ignorant les champs système
-    for field in model_instance._meta.fields:
-        if field.name not in ['id', 'uuid', 'created_at', 'updated_at', 'status']:
-            value = getattr(model_instance, field.name)
-            if value and not field.is_relation:
-                markdown += f"**{field.name}**: {value}\n\n"
-
-    return markdown
-
-def to_markdown(uuid_str, model_type):
-    """
-    Convertit un objet en Markdown basé sur son UUID et son type.
+    # Création des objets dans l'ordre
+    created_objects = {}
     
-    Args:
-        uuid_str: UUID de l'instance
-        model_type: Type de modèle (client, programme, session, etc.)
+    # Étape 1: Créer le client
+    client_section = [s for s in re.split(r'(?=^#+ \[@)', markdown_text) if '[@Client::new]' in s][0]
+    client = from_markdown(client_section)[0]
+    created_objects['client'] = client
     
-    Returns:
-        str: Représentation Markdown de l'objet
-    """
-    # Dictionnaire de mappage des types de modèles
-    models = {
-        'client': Client,
-        'programme': Programme,
-        'session': Session,
-        'sequence': Sequence,
-        'breakout': BreakOut
-    }
-
-    # Validation du type de modèle
-    if model_type.lower() not in models:
-        raise ValueError(f"Invalid model type: {model_type}")
-
-    model_class = models[model_type.lower()]
-    instance = model_class.objects.get(uuid=uuid_str)
+    # Étape 2: Créer le programme avec l'ID du client
+    programme_section = [s for s in re.split(r'(?=^#+ \[@)', markdown_text) if '[@Programme::new]' in s][0]
+    programme_section = programme_section.replace('[@Programme::new]', f'[@Programme::new]\n**client_id**: {client.id}')
+    programme = from_markdown(programme_section)[0]
+    created_objects['programme'] = programme
     
-    # Gestion spéciale pour les sessions (conversion hiérarchique)
-    if model_type.lower() == 'session':
-        markdown = model_to_markdown(instance.client, 1)
-        if instance.programme:
-            markdown += model_to_markdown(instance.programme, 2)
-        markdown += model_to_markdown(instance, 3)
-        
-        # Conversion des séquences et breakouts
-        for sequence in instance.sequences.filter(status='normal').order_by('order'):
-            markdown += model_to_markdown(sequence, 4)
-            for breakout in sequence.breakouts.filter(status='normal'):
-                markdown += model_to_markdown(breakout, 5)
-    else:
-        markdown = model_to_markdown(instance)
-
-    return markdown
-
-def parse_markdown_section(text):
-    """
-    Analyse une section Markdown pour extraire les informations du modèle.
+    # Étape 3: Créer la session avec l'ID du client et du programme
+    session_section = [s for s in re.split(r'(?=^#+ \[@)', markdown_text) if '[@Session::new]' in s][0]
+    session_section = session_section.replace('[@Session::new]', 
+        f'[@Session::new]\n**client_id**: {client.id}\n**programme_id**: {programme.id}')
+    session = from_markdown(session_section)[0]
+    created_objects['session'] = session
     
-    Args:
-        text: Texte Markdown à analyser
+    # Étape 4: Créer les séquences avec l'ID de la session
+    sequence_sections = [s for s in re.split(r'(?=^#+ \[@)', markdown_text) if '[@Sequence::new]' in s]
+    sequences = []
+    for i, seq_section in enumerate(sequence_sections):
+        seq_section = seq_section.replace('[@Sequence::new]', 
+            f'[@Sequence::new]\n**session_id**: {session.id}\n**order**: {i+1}')
+        sequence = from_markdown(seq_section)[0]
+        sequences.append(sequence)
+    created_objects['sequences'] = sequences
     
-    Returns:
-        dict: Informations extraites (type de modèle, UUID, champs)
-    """
-    # Extraction de l'en-tête avec le type de modèle et l'UUID
-    header_match = re.search(r'\[@(\w+)::([\w-]+)\]', text)
-    if not header_match:
-        return None
-
-    model_type, uuid_str = header_match.groups()
+    # Étape 5: Créer les breakouts avec l'ID de la séquence
+    breakout_sections = [s for s in re.split(r'(?=^#+ \[@)', markdown_text) if '[@BreakOut::new]' in s]
+    breakouts = []
+    for i, breakout_section in enumerate(breakout_sections):
+        # Associer au breakout à la séquence appropriée
+        current_sequence = sequences[i // 2]
+        breakout_section = breakout_section.replace('[@BreakOut::new]', 
+            f'[@BreakOut::new]\n**sequence_id**: {current_sequence.id}')
+        breakout = from_markdown(breakout_section)[0]
+        breakouts.append(breakout)
+    created_objects['breakouts'] = breakouts
     
-    # Extraction des champs
-    fields = {}
-    for line in text.split('\n'):
-        field_match = re.match(r'\*\*(\w+)\*\*:\s*([^\n]+)', line)
-        if field_match:
-            field_name, value = field_match.groups()
-            fields[field_name] = value.strip()
-            
-    return {
-        'model_type': model_type.lower(),
-        'uuid': uuid_str,
-        'fields': fields
-    }
-
-def from_markdown(markdown_text):
-    """
-    Convertit un texte Markdown en objets Django.
-    
-    Args:
-        markdown_text: Texte Markdown à convertir
-    
-    Returns:
-        list: Objets Django créés ou mis à jour
-    """
-    # Dictionnaire de mappage des types de modèles
-    models = {
-        'client': Client,
-        'programme': Programme,
-        'session': Session,
-        'sequence': Sequence,
-        'breakout': BreakOut
-    }
-
-    # Séparation des sections Markdown
-    sections = re.split(r'(?=^#+ \[@)', markdown_text, flags=re.MULTILINE)
-    
-    # Suivi des UUID traités pour chaque type de modèle
-    processed_uuids = {
-        'client': set(),
-        'programme': set(),
-        'session': set(),
-        'sequence': set(),
-        'breakout': set()
-    }
-
-    created_objects = []
-    for section in sections:
-        if not section.strip():
-            continue
-            
-        # Analyse de chaque section
-        parsed = parse_markdown_section(section)
-        if not parsed or parsed['model_type'] not in models:
-            continue
-
-        model_class = models[parsed['model_type']]
-        
-        # Gestion des UUID nouveaux et existants
-        if parsed['uuid'] != 'new':
-            try:
-                uuid_obj = uuid.UUID(parsed['uuid'])
-                obj, created = model_class.objects.update_or_create(
-                    uuid=uuid_obj,
-                    defaults={
-                        **parsed['fields'],
-                        'status': 'normal'
-                    }
-                )
-                processed_uuids[parsed['model_type']].add(uuid_obj)
-            except ValueError:
-                continue
-        else:
-            obj = model_class.objects.create(
-                **parsed['fields'],
-                uuid=uuid.uuid4(),
-                status='normal'
-            )
-            processed_uuids[parsed['model_type']].add(obj.uuid)
-
-        created_objects.append(obj)
-
-    # Mise à jour du statut des objets non traités
-    for model_type, uuids in processed_uuids.items():
-        models[model_type].objects.filter(
-            ~Q(uuid__in=uuids),
-            status='normal'
-        ).update(status='deleted')
-
     return created_objects
