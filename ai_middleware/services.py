@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from openai import OpenAI
 from anthropic import Anthropic
 from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai.models.chat import ChatMessage
 import requests
 from django.conf import settings
 
@@ -60,8 +60,8 @@ class MistralProvider(AIProvider):
     
     def generate_response(self, prompt):
         messages = [
-            ChatMessage(role="system", content="Vous êtes un assistant IA utile et professionnel."),
-            ChatMessage(role="user", content=prompt)
+            {"role": "system", "content": "Vous êtes un assistant IA utile et professionnel."},
+            {"role": "user", "content": prompt}
         ]
 
         chat_response = self.client.chat(
