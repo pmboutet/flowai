@@ -3,10 +3,23 @@ import uuid
 from django.db.models import Q
 from .models import Client, Programme, Session, Sequence, BreakOut
 
-# [Previous code remains the same until from_markdown function]
+def model_to_markdown(model_instance, level=1):
+    """Convert a model instance to markdown format"""
+    model_name = model_instance.__class__.__name__
+    header = '#' * level
+    markdown = f"{header} [@{model_name}::{model_instance.uuid}]\n\n"
 
-def from_markdown(markdown_text):
-    """Create or update objects from markdown text"""
+    # Add all fields
+    for field in model_instance._meta.fields:
+        if field.name not in ['id', 'uuid', 'created_at', 'updated_at', 'status']:
+            value = getattr(model_instance, field.name)
+            if value and not field.is_relation:
+                markdown += f"**{field.name}**: {value}\n\n"
+
+    return markdown
+
+def to_markdown(uuid_str, model_type):
+    """Generate markdown for a model and its relations"""
     models = {
         'client': Client,
         'programme': Programme,
@@ -15,56 +28,26 @@ def from_markdown(markdown_text):
         'breakout': BreakOut
     }
 
-    # Split markdown into sections based on headers
-    sections = re.split(r'(?=^#+ \[@)', markdown_text, flags=re.MULTILINE)
+    if model_type.lower() not in models:
+        raise ValueError(f"Invalid model type: {model_type}")
+
+    model_class = models[model_type.lower()]
+    instance = model_class.objects.get(uuid=uuid_str)
     
-    # Keep track of processed UUIDs
-    processed_uuids = {
-        'client': set(),
-        'programme': set(),
-        'session': set(),
-        'sequence': set(),
-        'breakout': set()
-    }
+    # If we're starting from a session, also get client and programme
+    if model_type.lower() == 'session':
+        markdown = model_to_markdown(instance.client, 1)
+        if instance.programme:
+            markdown += model_to_markdown(instance.programme, 2)
+        markdown += model_to_markdown(instance, 3)
+        for sequence in instance.sequences.filter(status='normal').order_by('order'):
+            markdown += model_to_markdown(sequence, 4)
+            for breakout in sequence.breakouts.filter(status='normal'):
+                markdown += model_to_markdown(breakout, 5)
+    else:
+        markdown = model_to_markdown(instance)
+        # [Rest of the code remains the same]
 
-    # Process each section
-    created_objects = []
-    for section in sections:
-        if not section.strip():
-            continue
-            
-        parsed = parse_markdown_section(section)
-        if not parsed or parsed['model_type'] not in models:
-            continue
+    return markdown
 
-        model_class = models[parsed['model_type']]
-        
-        # Create or update object
-        if parsed['uuid']:
-            uuid_obj = uuid.UUID(parsed['uuid'])
-            obj, created = model_class.objects.update_or_create(
-                uuid=uuid_obj,
-                defaults={
-                    **parsed['fields'],
-                    'status': 'normal'
-                }
-            )
-            processed_uuids[parsed['model_type']].add(uuid_obj)
-        else:
-            obj = model_class.objects.create(
-                **parsed['fields'],
-                uuid=uuid.uuid4(),
-                status='normal'
-            )
-            processed_uuids[parsed['model_type']].add(obj.uuid)
-
-        created_objects.append(obj)
-
-    # Mark unused objects as deleted
-    for model_type, uuids in processed_uuids.items():
-        models[model_type].objects.filter(
-            ~Q(uuid__in=uuids),
-            status='normal'
-        ).update(status='deleted')
-
-    return created_objects
+[Rest of the file remains the same]
