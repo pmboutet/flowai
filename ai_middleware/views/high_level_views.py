@@ -22,6 +22,46 @@ class ProgrammeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(client_id=client_id)
         return queryset
 
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        programmes = []
+        errors = []
+
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                # Vérifie que le client existe
+                client_id = item.get('client').id if item.get('client') else None
+                if not client_id:
+                    raise ValueError('Client est requis pour créer un programme')
+
+                # Crée le programme
+                sessions_data = item.pop('sessions', [])  # Extrait les sessions si présentes
+                programme = Programme.objects.create(**item)
+
+                # Associe les sessions si spécifiées
+                if sessions_data:
+                    programme.sessions.set(sessions_data)
+
+                programmes.append(programme)
+
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e)
+                })
+
+        response_data = {
+            "success": self.get_serializer(programmes, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['get'])
     def statistics(self, request, pk=None):
         """Retourne des statistiques sur le programme"""
@@ -86,19 +126,11 @@ class ClientViewSet(viewsets.ModelViewSet):
         client = self.get_object()
         
         # Prépare le contexte pour l'IA
-        context = f"""Client: {client.name}
-Contexte: {client.context}
-Objectifs: {client.objectives}
-
-"""
+        context = f"""Client: {client.name}\nContexte: {client.context}\nObjectifs: {client.objectives}\n\n"""
         
         # Ajoute les informations sur les sessions
         for session in client.sessions.all():
-            context += f"""Session: {session.title}
-Objectifs: {session.objectives}
-Principes de design: {session.design_principles}
-
-"""
+            context += f"""Session: {session.title}\nObjectifs: {session.objectives}\nPrincipes de design: {session.design_principles}\n\n"""
         
         # Utilise le service AI pour générer des recommandations
         try:
