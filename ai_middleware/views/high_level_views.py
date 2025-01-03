@@ -90,6 +90,50 @@ class ClientViewSet(viewsets.ModelViewSet):
             return ClientLightSerializer
         return ClientSerializer
 
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        # Utiliser le sérialiseur complet pour la création
+        serializer = ClientSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        clients = []
+        errors = []
+
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                # Gérer les relations
+                sponsors_data = item.pop('sponsors', [])
+                programmes_data = item.pop('programmes', [])
+                sessions_data = item.pop('sessions', [])
+
+                # Créer le client
+                client = Client.objects.create(**item)
+
+                # Associer les relations si présentes
+                if sponsors_data:
+                    client.sponsors.set(sponsors_data)
+                if programmes_data:
+                    client.programmes.set(programmes_data)
+                if sessions_data:
+                    client.sessions.set(sessions_data)
+
+                clients.append(client)
+
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e),
+                })
+
+        response_data = {
+            "success": ClientSerializer(clients, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['get'])
     def dashboard(self, request, pk=None):
         """Retourne un tableau de bord pour le client"""
