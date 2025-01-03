@@ -20,6 +20,38 @@ class SponsorViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(client_id=client_id)
         return queryset
 
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        sponsors = []
+        errors = []
+
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                # Vérifie que le client existe
+                client_id = item.get('client').id if item.get('client') else None
+                if not client_id:
+                    raise ValueError('Client est requis pour créer un sponsor')
+
+                sponsor = Sponsor.objects.create(**item)
+                sponsors.append(sponsor)
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e)
+                })
+
+        response_data = {
+            "success": self.get_serializer(sponsors, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
 class SessionViewSet(viewsets.ModelViewSet):
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
