@@ -72,6 +72,52 @@ class SessionViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @action(detail=False, methods=['post'])
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        sessions = []
+        errors = []
+
+        for index, item in enumerate(serializer.validated_data):
+            try:
+                # Vérification des relations requises
+                client_id = item.get('client').id if item.get('client') else None
+                if not client_id:
+                    raise ValueError('Client est requis pour créer une session')
+
+                # Crée la session
+                sponsors_data = item.pop('sponsors', [])
+                session = Session.objects.create(**item)
+
+                # Ajoute les sponsors si spécifiés
+                if sponsors_data:
+                    for sponsor in sponsors_data:
+                        # Vérifie que le sponsor appartient au même client
+                        if sponsor.client_id != session.client_id:
+                            raise ValueError(
+                                f'Le sponsor {sponsor.id} doit appartenir au même client que la session'
+                            )
+                    session.sponsors.set(sponsors_data)
+
+                sessions.append(session)
+
+            except Exception as e:
+                errors.append({
+                    "index": index,
+                    "error": str(e)
+                })
+
+        response_data = {
+            "success": self.get_serializer(sessions, many=True).data
+        }
+        if errors:
+            response_data["errors"] = errors
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['post'])
     def add_sponsor(self, request, pk=None):
         session = self.get_object()
