@@ -59,8 +59,8 @@ class MistralProvider(AIProvider):
     
     def generate_response(self, prompt):
         messages = [
-            ChatMessage(role="system", content="Vous êtes un assistant IA utile et professionnel."),
-            ChatMessage(role="user", content=prompt)
+            {"role": "system", "content": "Vous êtes un assistant IA utile et professionnel."},
+            {"role": "user", "content": prompt}
         ]
 
         chat_response = self.client.chat(
