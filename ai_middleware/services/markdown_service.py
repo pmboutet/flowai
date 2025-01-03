@@ -82,7 +82,7 @@ def parse_markdown_section(text):
         dict: Informations extraites (type de modèle, UUID, champs)
     """
     # Extraction de l'en-tête avec le type de modèle et l'UUID
-    header_match = re.search(r'\[@(\w+)::([\\w-]+)\]', text)
+    header_match = re.search(r'\[@(\w+)::([\w-]+)\]', text)
     if not header_match:
         return None
 
