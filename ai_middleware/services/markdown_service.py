@@ -17,7 +17,8 @@ def to_markdown(obj, export_related=True, level=1):
     """
     model_name = obj.__class__.__name__
     hashes = '#' * level
-    title = f'{hashes} [@{model_name}::{obj.id}]\n\n'
+    # Utiliser str() pour convertir l'UUID en string si nécessaire
+    title = f'{hashes} [@{model_name}::{str(obj.id)}]\n\n'
     
     # Filtrer les champs à exporter
     excluded_fields = ['id', 'created_at', 'updated_at']
@@ -29,6 +30,9 @@ def to_markdown(obj, export_related=True, level=1):
     for field in fields:
         value = getattr(obj, field.name)
         if value is not None:
+            # Convertir les UUID en string si nécessaire
+            if isinstance(value, uuid.UUID):
+                value = str(value)
             content += f'**{field.name}**: {value}\n'
     
     markdown = title + content + '\n'
@@ -103,15 +107,23 @@ def from_markdown(markdown_text):
             fields['id'] = uuid.uuid4()
             obj = model_class.objects.create(**fields)
         else:
-            # Mettre à jour l'objet existant
-            obj = model_class.objects.filter(Q(id=obj_id) | Q(uuid=obj_id)).first()
+            # Essayer de convertir l'ID en UUID si possible
+            try:
+                uuid_id = uuid.UUID(obj_id)
+                obj = model_class.objects.filter(Q(id=uuid_id) | Q(uuid=uuid_id)).first()
+            except ValueError:
+                obj = model_class.objects.filter(Q(id=obj_id) | Q(uuid=obj_id)).first()
+            
             if obj:
                 for field, value in fields.items():
                     setattr(obj, field, value)
                 obj.save()
             else:
                 # Si l'objet n'existe pas, le créer avec l'ID spécifié
-                fields['id'] = obj_id
+                try:
+                    fields['id'] = uuid.UUID(obj_id)
+                except ValueError:
+                    fields['id'] = obj_id
                 obj = model_class.objects.create(**fields)
         
         objects.append(obj)
@@ -143,7 +155,7 @@ def create_objects_from_markdown(markdown_text):
     if programme_sections:
         programme_section = programme_sections[0]
         programme_section = programme_section.replace('[@Programme::new]', 
-            f'[@Programme::new]\n**client_id**: {client.id}')
+            f'[@Programme::new]\n**client_id**: {str(client.id)}')
         programme = from_markdown(programme_section)[0]
         created_objects['programme'] = programme
     
@@ -152,7 +164,7 @@ def create_objects_from_markdown(markdown_text):
         if session_sections:
             session_section = session_sections[0]
             session_section = session_section.replace('[@Session::new]', 
-                f'[@Session::new]\n**client_id**: {client.id}\n**programme_id**: {programme.id}')
+                f'[@Session::new]\n**client_id**: {str(client.id)}\n**programme_id**: {str(programme.id)}')
             session = from_markdown(session_section)[0]
             created_objects['session'] = session
     
@@ -161,7 +173,7 @@ def create_objects_from_markdown(markdown_text):
             sequences = []
             for i, seq_section in enumerate(sequence_sections):
                 seq_section = seq_section.replace('[@Sequence::new]', 
-                    f'[@Sequence::new]\n**session_id**: {session.id}\n**order**: {i+1}')
+                    f'[@Sequence::new]\n**session_id**: {str(session.id)}\n**order**: {i+1}')
                 sequence = from_markdown(seq_section)[0]
                 sequences.append(sequence)
             created_objects['sequences'] = sequences
@@ -173,7 +185,7 @@ def create_objects_from_markdown(markdown_text):
                 # Associer au breakout à la séquence appropriée
                 current_sequence = sequences[i // 2]
                 breakout_section = breakout_section.replace('[@BreakOut::new]', 
-                    f'[@BreakOut::new]\n**sequence_id**: {current_sequence.id}')
+                    f'[@BreakOut::new]\n**sequence_id**: {str(current_sequence.id)}')
                 breakout = from_markdown(breakout_section)[0]
                 breakouts.append(breakout)
             created_objects['breakouts'] = breakouts
