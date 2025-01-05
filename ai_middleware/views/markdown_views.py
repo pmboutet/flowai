@@ -50,7 +50,24 @@ class MarkdownImportView(views.APIView):
                 return Response({'error': 'Markdown content is required'}, 
                                status=status.HTTP_400_BAD_REQUEST)
             
-            objects = from_markdown(markdown)
-            return Response({'message': f'{len(objects)} objects processed'})
+            # Créer ou mettre à jour les objets
+            result = {'created': [], 'updated': []}
+            for obj in from_markdown(markdown):
+                model_name = obj.__class__.__name__
+                if obj.created_at == obj.updated_at:
+                    result['created'].append(f"{model_name} ({obj.uuid})")
+                else:
+                    result['updated'].append(f"{model_name} ({obj.uuid})")
+            
+            return Response({
+                'success': True,
+                'message': f"Processed {len(result['created']) + len(result['updated'])} objects",
+                'details': result
+            })
+            
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            import traceback
+            return Response({
+                'error': str(e),
+                'trace': traceback.format_exc()
+            }, status=status.HTTP_400_BAD_REQUEST)
