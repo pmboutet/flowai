@@ -1,7 +1,9 @@
 import re
 import uuid
 from django.db.models import Q
+from django.db import transaction
 from ..models import Client, Programme, Session, Sequence, BreakOut
+
 
 def to_markdown(obj, export_related=True, level=1, initial_level=1):
     """
@@ -25,13 +27,11 @@ def to_markdown(obj, export_related=True, level=1, initial_level=1):
     
     # Générer les parents d'abord si c'est l'objet initial
     if level == initial_level:
-        # Pour une session, exporter le client et le programme parents
         if isinstance(obj, Session):
             if obj.client:
                 markdown += to_markdown(obj.client, level=1, initial_level=initial_level)
             if obj.programme:
                 markdown += to_markdown(obj.programme, level=2, initial_level=initial_level)
-        # Pour une séquence, exporter la session, le programme et le client parents
         elif isinstance(obj, Sequence):
             if obj.session and obj.session.client:
                 markdown += to_markdown(obj.session.client, level=1, initial_level=initial_level)
@@ -39,7 +39,6 @@ def to_markdown(obj, export_related=True, level=1, initial_level=1):
                 markdown += to_markdown(obj.session.programme, level=2, initial_level=initial_level)
             if obj.session:
                 markdown += to_markdown(obj.session, level=3, initial_level=initial_level)
-        # Pour un breakout, exporter la sequence et ses parents
         elif isinstance(obj, BreakOut):
             if obj.sequence and obj.sequence.session and obj.sequence.session.client:
                 markdown += to_markdown(obj.sequence.session.client, level=1, initial_level=initial_level)
@@ -97,6 +96,7 @@ def to_markdown(obj, export_related=True, level=1, initial_level=1):
     
     return markdown
 
+
 def from_markdown(markdown_text):
     """
     Crée ou met à jour des objets à partir d'un texte Markdown.
@@ -108,58 +108,79 @@ def from_markdown(markdown_text):
     Returns:
         list: Liste des objets créés ou mis à jour
     """
-    objects = []
-    lines = markdown_text.strip().split('\n')
-    
-    for line in lines:
-        if not line.strip():
-            continue
-            
-        # Extraire le type et l'UUID
-        header_match = re.match(r'#+\s+\[@(\w+)::([^\]]+)\]\s*(.+)?', line)
-        if not header_match:
-            continue
-            
-        model_name, obj_uuid, fields_text = header_match.groups()
-        model_class = globals().get(model_name)
-        
-        if not model_class or not fields_text:
-            continue
-            
-        # Extraire les champs et valeurs
-        fields = {}
-        field_matches = re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text)
-        
-        for match in field_matches:
-            field_name, value = match.groups()
-            fields[field_name] = value.strip()
-        
-        # Créer ou mettre à jour l'objet
-        if obj_uuid.lower() == 'new':
-            fields['uuid'] = uuid.uuid4()
-            obj = model_class.objects.create(**fields)
-        else:
-            try:
-                uuid_obj = uuid.UUID(obj_uuid)
-                obj = model_class.objects.filter(uuid=uuid_obj).first()
-                
-                if obj:
-                    # Mettre à jour les champs
-                    for field, value in fields.items():
-                        if field != 'uuid':
-                            setattr(obj, field, value)
-                    obj.save()
-                else:
-                    # Créer un nouvel objet avec l'UUID spécifié
-                    fields['uuid'] = uuid_obj
-                    obj = model_class.objects.create(**fields)
-                    
-            except ValueError:
+    with transaction.atomic():
+        objects = []
+        model_objects = {}
+        lines = [line.strip() for line in markdown_text.strip().split('\n') if line.strip()]
+
+        # Première passe : Créer ou mettre à jour les objets
+        for line in lines:
+            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\]\s*(.+)?$', line)
+            if not header_match:
                 continue
-        
-        objects.append(obj)
-    
-    return objects
+
+            model_name, obj_uuid, fields_text = header_match.groups()
+            model_class = globals().get(model_name)
+            if not model_class or not fields_text:
+                continue
+
+            # Extraire les champs
+            fields = {}
+            for match in re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text):
+                field_name, value = match.groups()
+                fields[field_name] = value.strip()
+
+            # Créer ou mettre à jour l'objet
+            try:
+                if obj_uuid.lower() == 'new':
+                    fields['uuid'] = uuid.uuid4()
+                    obj = model_class.objects.create(**fields)
+                else:
+                    uuid_obj = uuid.UUID(obj_uuid)
+                    obj = model_class.objects.filter(uuid=uuid_obj).first()
+                    if obj:
+                        for field, value in fields.items():
+                            if hasattr(obj, field) and not field.endswith('_id'):
+                                setattr(obj, field, value)
+                        obj.save()
+                    else:
+                        fields['uuid'] = uuid_obj
+                        obj = model_class.objects.create(**fields)
+
+                model_objects[str(obj.uuid)] = obj
+                objects.append(obj)
+
+            except (ValueError, AttributeError) as e:
+                print(f"Error processing line: {line} - {str(e)}")
+                continue
+
+        # Deuxième passe : Établir les relations
+        for line in lines:
+            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\]\s*(.+)?$', line)
+            if not header_match:
+                continue
+
+            model_name, obj_uuid, fields_text = header_match.groups()
+            if obj_uuid in model_objects:
+                obj = model_objects[obj_uuid]
+                relationships = {}
+                for match in re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text):
+                    field_name, value = match.groups()
+                    if field_name.endswith('_id'):
+                        related_name = field_name[:-3]
+                        relationships[related_name] = value.strip()
+
+                # Mettre à jour les relations
+                if isinstance(obj, Session):
+                    if 'client' in relationships and relationships['client'] in model_objects:
+                        obj.client = model_objects[relationships['client']]
+                        obj.save()
+                    if 'programme' in relationships and relationships['programme'] in model_objects:
+                        obj.programme = model_objects[relationships['programme']]
+                        obj.save()
+
+        return objects
+
 
 def create_objects_from_markdown(markdown_text):
     """
