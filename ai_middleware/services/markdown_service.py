@@ -115,20 +115,22 @@ def from_markdown(markdown_text):
 
         # Première passe : Créer ou mettre à jour les objets
         for line in lines:
-            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\]\s*(.+)?$', line)
+            # Modifié pour gérer les balises suivies de \n en rendant la partie champs optionnelle
+            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\](?:\s*(.+)?)?$', line)
             if not header_match:
                 continue
 
             model_name, obj_uuid, fields_text = header_match.groups()
             model_class = globals().get(model_name)
-            if not model_class or not fields_text:
+            if not model_class:
                 continue
 
-            # Extraire les champs
+            # Extraire les champs si présents
             fields = {}
-            for match in re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text):
-                field_name, value = match.groups()
-                fields[field_name] = value.strip()
+            if fields_text:
+                for match in re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text):
+                    field_name, value = match.groups()
+                    fields[field_name] = value.strip()
 
             # Créer ou mettre à jour l'objet
             try:
@@ -156,12 +158,12 @@ def from_markdown(markdown_text):
 
         # Deuxième passe : Établir les relations
         for line in lines:
-            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\]\s*(.+)?$', line)
+            header_match = re.match(r'^#+\s+\[@(\w+)::(\S+?)\](?:\s*(.+)?)?$', line)
             if not header_match:
                 continue
 
             model_name, obj_uuid, fields_text = header_match.groups()
-            if obj_uuid in model_objects:
+            if obj_uuid in model_objects and fields_text:
                 obj = model_objects[obj_uuid]
                 relationships = {}
                 for match in re.finditer(r'\*\*(\w+)\*\*:\s*([^*]+?)(?=\s+\*\*|$)', fields_text):
