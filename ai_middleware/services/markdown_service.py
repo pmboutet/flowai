@@ -16,7 +16,7 @@ def to_markdown(obj, export_related=True, level=1):
         str: Représentation Markdown de l'objet
     """
     model_name = obj.__class__.__name__
-    title = f'{"#" * level} [@{model_name}::{obj.id}]\n\n'
+    title = f'{\'#\' * level} [@{model_name}::{obj.id}]\n\n'
     
     # Filtrer les champs à exporter
     excluded_fields = ['id', 'created_at', 'updated_at']
