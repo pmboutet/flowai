@@ -17,55 +17,49 @@ def to_markdown(obj, export_related=True, level=1):
     """
     model_name = obj.__class__.__name__
     hashes = '#' * level
-    title = f'{hashes} [@{model_name}::{str(obj.uuid)}]\n\n'
+    # Commencer la ligne avec le header
+    line = f"{hashes} [@{model_name}::{str(obj.uuid)}] "
     
     # Filtrer les champs à exporter
-    excluded_fields = ['id', 'created_at', 'updated_at', 'uuid']
+    excluded_fields = ['id', 'created_at', 'updated_at', 'uuid', 'client', 'programme', 'session', 'sequence']
     fields = [f for f in obj.__class__._meta.get_fields() 
              if not f.is_relation and f.name not in excluded_fields]
     
-    # Générer le contenu des champs
-    content = ''
+    # Générer le contenu des champs sur la même ligne
     for field in fields:
         value = getattr(obj, field.name)
         if value is not None:
             # Gérer les UUIDs spécialement
             if isinstance(value, uuid.UUID):
                 value = str(value)
-            content += f'**{field.name}**: {value}\n'
+            # Nettoyer le texte pour le format une ligne
+            value = str(value).replace('\n', ' ').replace('\r', ' ').strip()
+            line += f"**{field.name}**: {value} "
     
-    # Ajouter les clés étrangères importantes
-    if isinstance(obj, Programme):
-        content += f'**client_uuid**: {str(obj.client.uuid)}\n'
-    elif isinstance(obj, Session):
-        content += f'**client_uuid**: {str(obj.client.uuid)}\n'
-        if obj.programme:
-            content += f'**programme_uuid**: {str(obj.programme.uuid)}\n'
-    elif isinstance(obj, Sequence):
-        content += f'**session_uuid**: {str(obj.session.uuid)}\n'
-    elif isinstance(obj, BreakOut):
-        content += f'**sequence_uuid**: {str(obj.sequence.uuid)}\n'
-    
-    markdown = title + content + '\n'
+    markdown = line.strip() + '\n'
     
     # Gérer les relations si demandé
     if export_related:
         if isinstance(obj, Client):
+            # Exporter les programmes du client
             programmes = Programme.objects.filter(client=obj)
             for prog in programmes:
                 markdown += to_markdown(prog, level=level+1)
                 
         elif isinstance(obj, Programme):
+            # Exporter les sessions du programme
             sessions = Session.objects.filter(programme=obj)
             for session in sessions:
                 markdown += to_markdown(session, level=level+1)
                 
         elif isinstance(obj, Session):
+            # Exporter les séquences de la session
             sequences = Sequence.objects.filter(session=obj).order_by('order')
             for sequence in sequences:
                 markdown += to_markdown(sequence, level=level+1)
                 
         elif isinstance(obj, Sequence):
+            # Exporter les breakouts de la séquence
             breakouts = BreakOut.objects.filter(sequence=obj)
             for breakout in breakouts:
                 markdown += to_markdown(breakout, level=level+1)
@@ -103,23 +97,14 @@ def from_markdown(markdown_text):
         # Extraire les champs et valeurs
         fields = {}
         foreign_keys = {}
-        for line in section.split('\n'):
-            field_match = re.match(r'\*\*(\w+)\*\*:\s*(.+)', line)
-            if field_match:
-                field_name, value = field_match.groups()
-                # Gérer les clés étrangères séparément
-                if field_name.endswith('_uuid'):
-                    related_model_name = field_name.replace('_uuid', '')
-                    if related_model_name == 'programme':
-                        foreign_keys['programme'] = value.strip()
-                    elif related_model_name == 'client':
-                        foreign_keys['client'] = value.strip()
-                    elif related_model_name == 'session':
-                        foreign_keys['session'] = value.strip()
-                    elif related_model_name == 'sequence':
-                        foreign_keys['sequence'] = value.strip()
-                else:
-                    fields[field_name] = value.strip()
+        field_matches = re.finditer(r'\*\*(\w+)\*\*:\s*([^*\n]+?)(?=\s+\*\*|$)', section)
+        for match in field_matches:
+            field_name, value = match.groups()
+            if field_name.endswith('_uuid'):
+                related_model_name = field_name.replace('_uuid', '')
+                foreign_keys[related_model_name] = value.strip()
+            else:
+                fields[field_name] = value.strip()
         
         # Résoudre les clés étrangères
         for field_name, uuid_value in foreign_keys.items():
@@ -190,7 +175,7 @@ def create_objects_from_markdown(markdown_text):
     if programme_sections:
         programme_section = programme_sections[0]
         programme_section = programme_section.replace('[@Programme::new]', 
-            f'[@Programme::new]\n**client_uuid**: {str(client.uuid)}')
+            f'[@Programme::new] **client_uuid**: {str(client.uuid)}')
         programme = from_markdown(programme_section)[0]
         created_objects['programme'] = programme
     
@@ -199,7 +184,7 @@ def create_objects_from_markdown(markdown_text):
         if session_sections:
             session_section = session_sections[0]
             session_section = session_section.replace('[@Session::new]', 
-                f'[@Session::new]\n**client_uuid**: {str(client.uuid)}\n**programme_uuid**: {str(programme.uuid)}')
+                f'[@Session::new] **client_uuid**: {str(client.uuid)} **programme_uuid**: {str(programme.uuid)}')
             session = from_markdown(session_section)[0]
             created_objects['session'] = session
     
@@ -208,7 +193,7 @@ def create_objects_from_markdown(markdown_text):
             sequences = []
             for i, seq_section in enumerate(sequence_sections):
                 seq_section = seq_section.replace('[@Sequence::new]', 
-                    f'[@Sequence::new]\n**session_uuid**: {str(session.uuid)}\n**order**: {i+1}')
+                    f'[@Sequence::new] **session_uuid**: {str(session.uuid)} **order**: {i+1}')
                 sequence = from_markdown(seq_section)[0]
                 sequences.append(sequence)
             created_objects['sequences'] = sequences
@@ -219,7 +204,7 @@ def create_objects_from_markdown(markdown_text):
             for i, breakout_section in enumerate(breakout_sections):
                 current_sequence = sequences[i // 2]
                 breakout_section = breakout_section.replace('[@BreakOut::new]', 
-                    f'[@BreakOut::new]\n**sequence_uuid**: {str(current_sequence.uuid)}')
+                    f'[@BreakOut::new] **sequence_uuid**: {str(current_sequence.uuid)}')
                 breakout = from_markdown(breakout_section)[0]
                 breakouts.append(breakout)
             created_objects['breakouts'] = breakouts
