@@ -1,5 +1,6 @@
 from rest_framework import views, status
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from ..services.markdown_service import to_markdown, from_markdown
 from ..models import Client, Programme, Session, Sequence, BreakOut
 
@@ -7,14 +8,18 @@ class MarkdownExportView(views.APIView):
     def get(self, request, uuid=None, model_type=None, pk=None):
         try:
             if uuid:
+                # Recherche par UUID
                 for model in [Client, Programme, Session, Sequence, BreakOut]:
                     try:
-                        obj = model.objects.get(uuid=uuid)
-                        markdown = to_markdown(uuid, model.__name__.lower())
+                        obj = get_object_or_404(model, uuid=uuid)
+                        markdown = to_markdown(obj)
                         return Response({'markdown': markdown})
                     except model.DoesNotExist:
                         continue
+                return Response({'error': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
+                
             elif model_type and pk:
+                # Recherche par type de modèle et ID
                 models = {
                     'client': Client,
                     'programme': Programme,
@@ -25,11 +30,15 @@ class MarkdownExportView(views.APIView):
                 model = models.get(model_type.lower())
                 if not model:
                     return Response({'error': 'Invalid model type'}, status=status.HTTP_400_BAD_REQUEST)
-                obj = model.objects.get(id=pk)
-                markdown = to_markdown(obj.uuid, model_type)
-                return Response({'markdown': markdown})
                 
-            return Response({'error': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
+                # Essayer de trouver l'objet par ID ou UUID
+                obj = get_object_or_404(model, pk=pk)
+                markdown = to_markdown(obj)
+                return Response({'markdown': markdown})
+            
+            return Response({'error': 'UUID or model_type and pk are required'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+            
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -38,7 +47,8 @@ class MarkdownImportView(views.APIView):
         try:
             markdown = request.data.get('markdown')
             if not markdown:
-                return Response({'error': 'Markdown content is required'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Markdown content is required'}, 
+                               status=status.HTTP_400_BAD_REQUEST)
             
             objects = from_markdown(markdown)
             return Response({'message': f'{len(objects)} objects processed'})
