@@ -14,7 +14,7 @@ GROK_API_URL = os.getenv('GROK_API_URL', 'https://api.grok.ai')
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.fly.dev').split(',')
 
@@ -84,6 +84,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
@@ -94,17 +95,18 @@ REST_FRAMEWORK = {
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': True,
+    'LOGIN_URL': '/admin/login/',
+    'LOGOUT_URL': '/admin/logout/',
     'SECURITY_DEFINITIONS': {
         'Basic': {
             'type': 'basic'
         },
-        'Session': {
+        'Bearer': {
             'type': 'apiKey',
-            'name': 'JSESSIONID',
-            'in': 'cookie',
+            'name': 'Authorization',
+            'in': 'header'
         }
     },
-    'SECURITY_REQUIREMENTS': [{'Basic': [], 'Session': []}]
 }
 
 REDOC_SETTINGS = {
@@ -136,7 +138,7 @@ UNFOLD = {
     "STYLES": ["primary"],
 }
 
-LOGIN_URL = 'login'
+LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/admin/'
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/admin/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/login-error/'
