@@ -16,20 +16,19 @@ schema_view = get_schema_view(
         license=openapi.License(name="BSD License"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],  # Changed this line
-    url=f'https://127.0.0.1:8000' if settings.DEBUG else None
+    permission_classes=[permissions.AllowAny],
+    url='https://127.0.0.1:8000' if settings.DEBUG else None,
 )
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/admin/'), name='index'),
     path('admin/', admin.site.urls, name='admin-site'),
     path('api/', include('ai_middleware.urls')),
     path('auth/', include('social_django.urls', namespace='social')),
     
     # API Documentation
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-docs'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    
-    # Root URL
-    path('', RedirectView.as_view(url='/admin/'), name='index'),
 ]
