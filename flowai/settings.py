@@ -18,7 +18,7 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.fly.dev').split(',')
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.fly.dev').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.fly.dev,https://localhost:8000,https://127.0.0.1:8000').split(',')
 
 INSTALLED_APPS = [
     'unfold',
@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'ai_middleware',
     'whitenoise.runserver_nostatic',
     'drf_yasg',
+    'sslserver',
 ]
 
 MIDDLEWARE = [
@@ -155,5 +156,5 @@ MEDIA_ROOT = os.path.join('/data', 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SECURE_SSL_REDIRECT = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
