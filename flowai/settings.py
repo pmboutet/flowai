@@ -15,7 +15,7 @@ MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'unfold',  # Ajout de unfold avant admin
