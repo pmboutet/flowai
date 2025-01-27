@@ -9,6 +9,7 @@ FlowAI is a Django-based API platform that integrates various AI services includ
 - Google OAuth integration
 - API documentation with Swagger/ReDoc
 - Support for multiple AI providers (OpenAI, Anthropic, Mistral)
+- Hierarchical data management with markdown import/export
 
 ## Documentation
 
@@ -124,6 +125,36 @@ flyctl deploy
 
 For detailed API documentation, visit the Swagger UI at `/api/docs/` or ReDoc at `/api/redoc/`
 
+## Markdown Format
+
+The API supports importing and exporting data in a specific markdown format that preserves hierarchical relationships between objects. The format is structured as follows:
+
+### Basic Format
+```markdown
+# [@Type::UUID] **field1**: value1 **field2**: value2
+```
+
+Each line represents one object with:
+- Hierarchy level indicated by number of `#`
+- Object type and UUID in `[@Type::UUID]` format
+- Fields as `**fieldname**: value` pairs
+
+### Example
+```markdown
+# [@Client::550e8400-e29b-41d4-a716-446655440000] **name**: ACME Corp **context**: Global company
+## [@Programme::663e8400-e29b-41d4-a716-446655440123] **name**: Sales Training
+### [@Session::774e8400-e29b-41d4-a716-446655440456] **title**: Introduction
+```
+
+### Available Fields
+- Client: name, context, objectives
+- Programme: name, description
+- Session: title, context, objectives, inputs, outputs, participants, design_principles, deliverables
+- Sequence: title, objective, input_text, output_text, order
+- BreakOut: title, description, objective
+
+For creating new objects, use `new` as the UUID: `[@Type::new]`
+
 ## Contributing
 
 1. Fork the repository
@@ -134,4 +165,4 @@ For detailed API documentation, visit the Swagger UI at `/api/docs/` or ReDoc at
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details
