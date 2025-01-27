@@ -17,19 +17,19 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.IsAuthenticated,),
-    url=f'http://127.0.0.1:8000' if settings.DEBUG else None
+    url=f'https://127.0.0.1:8000' if settings.DEBUG else None
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin-site'),
     path('api/', include('ai_middleware.urls')),
     path('auth/', include('social_django.urls', namespace='social')),
-    
-    # Redirect from HTTPS to HTTP in development
-    path('', RedirectView.as_view(url='http://127.0.0.1:8000') if settings.DEBUG else admin.site.urls),
     
     # API Documentation
     path('api/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    
+    # Root URL
+    path('', RedirectView.as_view(url='/admin/'), name='index'),
 ]
