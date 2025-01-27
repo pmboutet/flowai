@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'social_django',
     'ai_middleware',
     'whitenoise.runserver_nostatic',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,27 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_FILTER_FORM': None
+}
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': True,
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        },
+        'Session': {
+            'type': 'apiKey',
+            'name': 'JSESSIONID',
+            'in': 'cookie',
+        }
+    },
+    'SECURITY_REQUIREMENTS': [{'Basic': [], 'Session': []}]
+}
+
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': True,
+    'NATIVE_SCROLLBARS': True,
+    'REQUIRED_PROPS_FIRST': True,
 }
 
 AUTHENTICATION_BACKENDS = (
