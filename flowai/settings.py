@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     'unfold',  # before django.contrib.admin
     'unfold.contrib.filters',  # optional, if special filters are needed
     'unfold.contrib.forms',    # optional, if special form elements are needed
-    'unfold.contrib.guardian', # optional, if object-level permissions are needed
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,11 +31,12 @@ INSTALLED_APPS = [
     'social_django',
     'ai_middleware',
     'sslserver',
+    'whitenoise.runserver_nostatic',  # Add whitenoise runserver
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise must be after security and before all else
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -45,6 +45,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
+
+# Whitenoise configuration
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
+WHITENOISE_MANIFEST_STRICT = False
 
 ROOT_URLCONF = 'flowai.urls'
 
@@ -129,6 +134,9 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
