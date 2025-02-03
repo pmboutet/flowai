@@ -11,4 +11,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "flowai.wsgi:application"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "flowai.wsgi:application"]
