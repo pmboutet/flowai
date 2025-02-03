@@ -17,6 +17,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 INSTALLED_APPS = [
     'unfold',  # before django.contrib.admin
+    'unfold.contrib.filters',  # optional, if special filters are needed
+    'unfold.contrib.forms',    # optional, if special form elements are needed
+    'unfold.contrib.guardian', # optional, if object-level permissions are needed
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,10 +48,39 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'flowai.urls'
 
+# Unfold settings
+UNFOLD = {
+    'SITE_TITLE': 'FlowAI Admin',
+    'SITE_HEADER': 'FlowAI Administration',
+    'SITE_URL': '/',
+    'SITE_ICON': None,  # your custom logo
+    'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',  # optional
+    'STYLES': [],  # optional - list of additional CSS files
+    'SCRIPTS': [],  # optional - list of additional JS files
+    'COLORS': {
+        'primary': {
+            '50': '#f0f9ff',
+            '100': '#e0f2fe',
+            '200': '#bae6fd',
+            '300': '#7dd3fc',
+            '400': '#38bdf8',
+            '500': '#0ea5e9',
+            '600': '#0284c7',
+            '700': '#0369a1',
+            '800': '#075985',
+            '900': '#0c4a6e',
+        }
+    },
+    'THEME': {  # optional - your custom theme
+        'extends': 'default',
+        'theme': 'light',  # or 'dark'
+    }
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Add templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
