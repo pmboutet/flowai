@@ -11,6 +11,9 @@ app = "flowai"
   DJANGO_SECRET_KEY = "7P.>?Jjw_qMeUX=SW5l;{i]}<H9?t|MmxT}tkO8s0qc_hNpQ9|"
   DJANGO_SETTINGS_MODULE = "flowai.settings"
 
+[processes]
+  web = "gunicorn -c gunicorn.conf.py flowai.wsgi:application"
+
 [http_service]
   internal_port = 8000
   force_https = true
