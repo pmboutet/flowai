@@ -1,6 +1,7 @@
 app = "flowai"
 
 [build]
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8000"
