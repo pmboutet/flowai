@@ -1,8 +1,10 @@
-{% extends 'unfold/index.html' %}
+{% extends 'admin/index.html' %}
 
 {% block content %}
   {{ block.super }}
   {% load log %}
   {% get_admin_log 10 as admin_log %}
-  <input type="hidden" id="log_entries" data-log-entries="{{ admin_log }}">
+  <script type="text/javascript">
+    window.log_entries = {{ admin_log|safe }};
+  </script>
 {% endblock %}
