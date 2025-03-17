@@ -1,16 +1,10 @@
+from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.views.generic import RedirectView
-
-# Import the custom admin site
-from .admin import FlowAIAdminSite
-from django.contrib import admin
-
-# Replace the default admin site
-admin.site = FlowAIAdminSite(name='flowai_admin')
 
 schema_view = get_schema_view(
     openapi.Info(

@@ -59,7 +59,7 @@ UNFOLD = {
     'SITE_HEADER': 'FlowAI Administration',
     'SITE_URL': '/',
     'SITE_ICON': None,  # your custom logo
-    # Removed dashboard callback
+    'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',  # restored
     'STYLES': [],  # optional - list of additional CSS files
     'SCRIPTS': [],  # optional - list of additional JS files
     'COLORS': {
