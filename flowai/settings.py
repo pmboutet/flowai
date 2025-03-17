@@ -10,15 +10,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True  # Set to True for troubleshooting
 
 ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
-    'unfold',  # before django.contrib.admin
-    'unfold.contrib.filters',  # optional, if special filters are needed
-    'unfold.contrib.forms',    # optional, if special form elements are needed
+    # Remove Unfold temporarily to test the basic admin
+    # 'unfold',
+    # 'unfold.contrib.filters', 
+    # 'unfold.contrib.forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,13 +32,13 @@ INSTALLED_APPS = [
     'social_django',
     'ai_middleware',
     'sslserver',
-    'whitenoise.runserver_nostatic',  # Add whitenoise runserver
-    'flowai.apps.FlowAIConfig',  # Add our app config
+    'whitenoise.runserver_nostatic',
+    'flowai.apps.FlowAIConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise must be after security and before all else
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -45,7 +46,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    # Add custom middleware
     'flowai.middleware.LogEntriesMiddleware',
 ]
 
@@ -56,39 +56,39 @@ WHITENOISE_MANIFEST_STRICT = False
 
 ROOT_URLCONF = 'flowai.urls'
 
-# Unfold settings
-UNFOLD = {
-    'SITE_TITLE': 'FlowAI Admin',
-    'SITE_HEADER': 'FlowAI Administration',
-    'SITE_URL': '/',
-    'SITE_ICON': None,  # your custom logo
-    'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',  # restored
-    'STYLES': [],  # optional - list of additional CSS files
-    'SCRIPTS': [],  # optional - list of additional JS files
-    'COLORS': {
-        'primary': {
-            '50': '#f0f9ff',
-            '100': '#e0f2fe',
-            '200': '#bae6fd',
-            '300': '#7dd3fc',
-            '400': '#38bdf8',
-            '500': '#0ea5e9',
-            '600': '#0284c7',
-            '700': '#0369a1',
-            '800': '#075985',
-            '900': '#0c4a6e',
-        }
-    },
-    'THEME': {  # optional - your custom theme
-        'extends': 'default',
-        'theme': 'light',  # or 'dark'
-    }
-}
+# Unfold settings - comment out since we're not using Unfold temporarily
+# UNFOLD = {
+#     'SITE_TITLE': 'FlowAI Admin',
+#     'SITE_HEADER': 'FlowAI Administration',
+#     'SITE_URL': '/',
+#     'SITE_ICON': None,
+#     'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',
+#     'STYLES': [],
+#     'SCRIPTS': [],
+#     'COLORS': {
+#         'primary': {
+#             '50': '#f0f9ff',
+#             '100': '#e0f2fe',
+#             '200': '#bae6fd',
+#             '300': '#7dd3fc',
+#             '400': '#38bdf8',
+#             '500': '#0ea5e9',
+#             '600': '#0284c7',
+#             '700': '#0369a1',
+#             '800': '#075985',
+#             '900': '#0c4a6e',
+#         }
+#     },
+#     'THEME': {
+#         'extends': 'default',
+#         'theme': 'light',
+#     }
+# }
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Add templates directory
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -98,7 +98,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
-                # Keep custom context processor
                 'flowai.context_processors.admin_log_entries',
             ],
         },
