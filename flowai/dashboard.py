@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-def custom_dashboard(request):
+def custom_dashboard(request, context=None):
     """Custom dashboard configuration for Unfold admin"""
     return {
         'cards': [],  # Liste des cartes à afficher sur le dashboard
