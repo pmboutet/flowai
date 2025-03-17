@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'ai_middleware',
     'sslserver',
     'whitenoise.runserver_nostatic',  # Add whitenoise runserver
+    'flowai.apps.FlowAIConfig',  # Add our app config
 ]
 
 MIDDLEWARE = [
