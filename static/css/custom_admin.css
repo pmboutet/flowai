@@ -1,46 +1,83 @@
-/* Custom admin styling with pink headers */
-
-/* Primary color - pink #EC028C */
-/* Only apply pink to headers and keep everything else with default colors */
+/* Custom admin styling with exact pink headers (#EC028C) */
 
 /* Header styling */
 #header {
-  background: #EC028C;
-  color: #fff;
+  background: #EC028C !important;
+  color: #fff !important;
 }
 
 #header a:link, #header a:visited {
-  color: #fff;
+  color: #fff !important;
 }
 
 #user-tools a:focus, #user-tools a:hover {
-  color: #FFB7E5;
+  color: #FFD6EF !important;
 }
 
 /* Module headers */
 .module h2, .module caption, .inline-group h2 {
-  background: #EC028C;
-  color: #fff;
+  background: #EC028C !important;
+  color: #fff !important;
 }
 
 /* Breadcrumbs */
 div.breadcrumbs {
-  background: #EC028C;
-  color: #fff;
+  background: #EC028C !important;
+  color: #fff !important;
 }
 
 div.breadcrumbs a {
-  color: #fff;
+  color: #fff !important;
 }
 
 div.breadcrumbs a:focus, div.breadcrumbs a:hover {
-  color: #FFB7E5;
+  color: #FFD6EF !important;
 }
 
 /* Dashboard module headers */
 .dashboard .module table th {
-  background: #EC028C;
-  color: #fff;
+  background: #EC028C !important;
+  color: #fff !important;
 }
 
-/* Keep the rest of the elements with default styling */
+/* App section headers */
+.app-ai_middleware.module h2,
+.module h2, 
+.module caption {
+  background: #EC028C !important;
+  color: #fff !important;
+}
+
+/* Authentication section */
+.module.authentication h2 {
+  background: #EC028C !important;
+  color: #fff !important;
+}
+
+/* All section headers in the admin */
+.app-auth caption, 
+.app-contenttypes caption,
+.app-sessions caption,
+.app-sites caption,
+.app-auth caption,
+.app-admin caption,
+.app-social_django caption,
+.app-ai_middleware caption {
+  background: #EC028C !important;
+  color: #fff !important;
+}
+
+/* Force the exact color on all headers by using more specific selectors */
+#content h1, caption, 
+.module h2, 
+.inline-group h2,
+.dashboard .module caption {
+  background: #EC028C !important;
+  color: #fff !important;
+}
+
+/* Remove any default styling that might be interfering */
+.dashboard .module table th a,
+.module h2 a {
+  color: #fff !important;
+}
