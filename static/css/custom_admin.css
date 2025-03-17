@@ -1,60 +1,13 @@
-/* Custom admin styling with exact pink headers (#EC028C) */
+/* Custom admin styling with only table headers in pink (#EC028C) */
 
-/* Header styling */
-#header {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-#header a:link, #header a:visited {
-  color: #fff !important;
-}
-
-#user-tools a:focus, #user-tools a:hover {
-  color: #FFD6EF !important;
-}
-
-/* Module headers */
-.module h2, .module caption, .inline-group h2 {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-/* Breadcrumbs */
-div.breadcrumbs {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-div.breadcrumbs a {
-  color: #fff !important;
-}
-
-div.breadcrumbs a:focus, div.breadcrumbs a:hover {
-  color: #FFD6EF !important;
-}
-
-/* Dashboard module headers */
-.dashboard .module table th {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-/* App section headers */
-.app-ai_middleware.module h2,
+/* Reset all previous customizations */
+#header,
 .module h2, 
-.module caption {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-/* Authentication section */
-.module.authentication h2 {
-  background: #EC028C !important;
-  color: #fff !important;
-}
-
-/* All section headers in the admin */
+.module caption, 
+.inline-group h2,
+div.breadcrumbs,
+.app-ai_middleware.module h2,
+.module.authentication h2,
 .app-auth caption, 
 .app-contenttypes caption,
 .app-sessions caption,
@@ -63,21 +16,24 @@ div.breadcrumbs a:focus, div.breadcrumbs a:hover {
 .app-admin caption,
 .app-social_django caption,
 .app-ai_middleware caption {
+  /* Reset to default styling */
+  background: initial;
+  color: initial;
+}
+
+/* Only style table headers with the pink color */
+table th {
   background: #EC028C !important;
   color: #fff !important;
 }
 
-/* Force the exact color on all headers by using more specific selectors */
-#content h1, caption, 
-.module h2, 
-.inline-group h2,
-.dashboard .module caption {
-  background: #EC028C !important;
+/* Ensure table header links are properly styled */
+table th a:link, 
+table th a:visited {
   color: #fff !important;
 }
 
-/* Remove any default styling that might be interfering */
-.dashboard .module table th a,
-.module h2 a {
-  color: #fff !important;
+table th a:hover, 
+table th a:focus {
+  color: #FFD6EF !important;
 }
