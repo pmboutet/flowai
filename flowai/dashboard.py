@@ -3,15 +3,8 @@ from django.contrib.admin.models import LogEntry
 
 def custom_dashboard(request, context=None):
     """Custom dashboard configuration for Unfold admin"""
-    # Ensure context is a dictionary
-    if context is None:
-        context = {}
-    
-    # Add log entries to context if not present
-    if 'log_entries' not in context:
-        context['log_entries'] = LogEntry.objects.select_related('content_type', 'user')[:10]
-    
-    # Add custom dashboard content
+    # Return the dashboard data without modifying the context
+    # The log_entries will be handled by another part of the application
     return {
         'cards': [],  # Liste des cartes à afficher sur le dashboard
         'panels': [],  # Panneaux personnalisés
