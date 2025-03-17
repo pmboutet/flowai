@@ -1,139 +1,46 @@
-/* Custom admin styling with pink color scheme */
+/* Custom admin styling with pink headers */
 
-:root {
-  --primary: #EC028C;
-  --secondary: #FF66C4;
-  --accent: #FFB7E5;
-  --primary-fg: #fff;
-  
-  --body-fg: #333;
-  --body-bg: #fff;
-  --body-quiet-color: #666;
-  --body-loud-color: #000;
-  
-  --header-color: #fff;
-  --header-branding-color: var(--header-color);
-  --header-bg: var(--primary);
-  --header-link-color: var(--header-color);
-  
-  --breadcrumbs-fg: #c4dce8;
-  --breadcrumbs-link-fg: var(--body-bg);
-  --breadcrumbs-bg: var(--primary);
-  
-  --link-fg: #EC028C;
-  --link-hover-color: #FF66C4;
-  --link-selected-fg: #FF66C4;
-  
-  --hairline-color: #e8e8e8;
-  --border-color: #ccc;
-  
-  --error-fg: #ba2121;
-  
-  --message-success-bg: #dfd;
-  --message-warning-bg: #ffc;
-  --message-error-bg: #ffefef;
-  
-  --darkened-bg: #f8f8f8;
-  --selected-bg: #FFEBF5;
-  --selected-row: #FFEBF5;
-  
-  --button-fg: #fff;
-  --button-bg: var(--primary);
-  --button-hover-bg: #FF66C4;
-  --default-button-bg: #EC028C;
-  --default-button-hover-bg: #FF66C4;
-  --close-button-bg: #888;
-  --close-button-hover-bg: #747474;
-  --delete-button-bg: #ba2121;
-  --delete-button-hover-bg: #a41515;
-  
-  --object-tools-fg: var(--button-fg);
-  --object-tools-bg: var(--primary);
-  --object-tools-hover-bg: var(--button-hover-bg);
-}
+/* Primary color - pink #EC028C */
+/* Only apply pink to headers and keep everything else with default colors */
 
 /* Header styling */
 #header {
-  background: var(--header-bg);
-  color: var(--header-color);
+  background: #EC028C;
+  color: #fff;
+}
+
+#header a:link, #header a:visited {
+  color: #fff;
 }
 
 #user-tools a:focus, #user-tools a:hover {
-  color: var(--accent);
+  color: #FFB7E5;
 }
 
 /* Module headers */
 .module h2, .module caption, .inline-group h2 {
-  background: var(--primary);
-  color: var(--header-color);
-}
-
-/* Buttons */
-.button, input[type=submit], input[type=button], .submit-row input, a.button {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover {
-  background: var(--button-hover-bg);
-}
-
-.button.default, input[type=submit].default, .submit-row input.default {
-  background: var(--default-button-bg);
-}
-
-.button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
-  background: var(--default-button-hover-bg);
-}
-
-/* Links */
-a:link, a:visited {
-  color: var(--link-fg);
-}
-
-a:focus, a:hover {
-  color: var(--link-hover-color);
-}
-
-/* Selected rows */
-.row1.selected, .row2.selected {
-  background: var(--selected-row);
+  background: #EC028C;
+  color: #fff;
 }
 
 /* Breadcrumbs */
 div.breadcrumbs {
-  background: var(--breadcrumbs-bg);
-  color: var(--breadcrumbs-fg);
+  background: #EC028C;
+  color: #fff;
 }
 
 div.breadcrumbs a {
-  color: var(--breadcrumbs-link-fg);
+  color: #fff;
 }
 
 div.breadcrumbs a:focus, div.breadcrumbs a:hover {
-  color: var(--accent);
+  color: #FFB7E5;
 }
 
-/* Dashboard */
+/* Dashboard module headers */
 .dashboard .module table th {
-  background: var(--primary);
-  color: var(--header-color);
+  background: #EC028C;
+  color: #fff;
 }
 
-.dashboard .module table td a:link, .dashboard .module table td a:visited {
-  color: var(--link-fg);
-}
-
-.dashboard .module table td a:focus, .dashboard .module table td a:hover {
-  color: var(--link-hover-color);
-}
-
-/* Object tools */
-.object-tools a:link, .object-tools a:visited {
-  background: var(--object-tools-bg);
-  color: var(--object-tools-fg);
-}
-
-.object-tools a:focus, .object-tools a:hover {
-  background: var(--object-tools-hover-bg);
-}
+/* Keep the rest of the elements with default styling */
