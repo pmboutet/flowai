@@ -10,16 +10,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # Set to True for troubleshooting
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
-    # Remove Unfold temporarily to test the basic admin
-    # 'unfold',
-    # 'unfold.contrib.filters', 
-    # 'unfold.contrib.forms',
+    # Re-enable Unfold
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,34 +56,34 @@ WHITENOISE_MANIFEST_STRICT = False
 
 ROOT_URLCONF = 'flowai.urls'
 
-# Unfold settings - comment out since we're not using Unfold temporarily
-# UNFOLD = {
-#     'SITE_TITLE': 'FlowAI Admin',
-#     'SITE_HEADER': 'FlowAI Administration',
-#     'SITE_URL': '/',
-#     'SITE_ICON': None,
-#     'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',
-#     'STYLES': [],
-#     'SCRIPTS': [],
-#     'COLORS': {
-#         'primary': {
-#             '50': '#f0f9ff',
-#             '100': '#e0f2fe',
-#             '200': '#bae6fd',
-#             '300': '#7dd3fc',
-#             '400': '#38bdf8',
-#             '500': '#0ea5e9',
-#             '600': '#0284c7',
-#             '700': '#0369a1',
-#             '800': '#075985',
-#             '900': '#0c4a6e',
-#         }
-#     },
-#     'THEME': {
-#         'extends': 'default',
-#         'theme': 'light',
-#     }
-# }
+# Unfold settings
+UNFOLD = {
+    'SITE_TITLE': 'FlowAI Admin',
+    'SITE_HEADER': 'FlowAI Administration',
+    'SITE_URL': '/',
+    'SITE_ICON': None,
+    'DASHBOARD_CALLBACK': 'flowai.dashboard.custom_dashboard',
+    'STYLES': [],
+    'SCRIPTS': [],
+    'COLORS': {
+        'primary': {
+            '50': '#f0f9ff',
+            '100': '#e0f2fe',
+            '200': '#bae6fd',
+            '300': '#7dd3fc',
+            '400': '#38bdf8',
+            '500': '#0ea5e9',
+            '600': '#0284c7',
+            '700': '#0369a1',
+            '800': '#075985',
+            '900': '#0c4a6e',
+        }
+    },
+    'THEME': {
+        'extends': 'default',
+        'theme': 'light',
+    }
+}
 
 TEMPLATES = [
     {
