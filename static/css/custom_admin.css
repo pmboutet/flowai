@@ -1,45 +1,38 @@
-/* Custom admin styling with specific table headers in pink (#EC028C) */
+/* Custom admin styling with specific elements in pink (#EC028C) */
 
-/* Reset previous customizations */
-#header,
+/* Apply pink background to specified elements */
+#header, 
 .module h2, 
 .module caption, 
-.inline-group h2,
-div.breadcrumbs,
-.app-ai_middleware.module h2,
-.module.authentication h2,
+.inline-group h2, 
+div.breadcrumbs, 
+.app-ai_middleware.module h2, 
+.module.authentication h2, 
 .app-auth caption, 
-.app-contenttypes caption,
-.app-sessions caption,
-.app-sites caption,
-.app-auth caption,
-.app-admin caption,
-.app-social_django caption,
+.app-contenttypes caption, 
+.app-sessions caption, 
+.app-sites caption, 
+.app-auth caption, 
+.app-admin caption, 
+.app-social_django caption, 
 .app-ai_middleware caption {
-  /* Reset to default styling */
-  background: initial;
+  background: #EC028C;
   color: initial;
 }
 
-/* Apply pink color to standard table headers, but exclude dashboard tables */
-table:not(.dashboard .module table) th {
-  background: #EC028C !important;
+/* Ensure text in pink backgrounds is visible */
+#header a:link, 
+#header a:visited,
+div.breadcrumbs a,
+.module h2 a:link,
+.module h2 a:visited,
+.module caption a:link,
+.module caption a:visited {
   color: #fff !important;
 }
 
-/* Keep dashboard table headers with their original style */
+/* Dashboard table headers with their original style */
 .dashboard .module table th {
   background: #f4f4f4 !important;
-  color: #666 !important; /* Adjust this to match the default text color for dashboard table headers */
-}
-
-/* Style links in our custom pink th elements */
-table:not(.dashboard .module table) th a:link, 
-table:not(.dashboard .module table) th a:visited {
-  color: #fff !important;
-}
-
-table:not(.dashboard .module table) th a:hover, 
-table:not(.dashboard .module table) th a:focus {
-  color: #FFD6EF !important;
+  color: #666 !important;
 }
