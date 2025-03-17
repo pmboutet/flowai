@@ -16,8 +16,8 @@ div.breadcrumbs,
 .app-admin caption, 
 .app-social_django caption, 
 .app-ai_middleware caption {
-  background: #EC028C;
-  color: initial;
+  background: #EC028C !important;
+  color: initial !important;
 }
 
 /* Ensure text in pink backgrounds is visible */
@@ -35,4 +35,19 @@ div.breadcrumbs a,
 .dashboard .module table th {
   background: #f4f4f4 !important;
   color: #666 !important;
+}
+
+/* Unfold specific overrides to ensure our pink styling works */
+.unfold-nav-sidebar, 
+.unfold-header, 
+.unfold-breadcrumbs {
+  background: #EC028C !important;
+}
+
+.unfold-nav-sidebar-title {
+  color: #fff !important;
+}
+
+.unfold-theme-light.unfold-theme-default .unfold-app-title {
+  color: #fff !important;
 }
