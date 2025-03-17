@@ -1,5 +1,4 @@
 from django.contrib.admin.models import LogEntry
-from django.template.context_processors import log as log_processor
 import types
 
 def apply_patches():
