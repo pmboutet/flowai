@@ -44,6 +44,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    # Add custom middleware
+    'flowai.middleware.LogEntriesMiddleware',
 ]
 
 # Whitenoise configuration
@@ -95,7 +97,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
-                # Add custom context processor
+                # Keep custom context processor
                 'flowai.context_processors.admin_log_entries',
             ],
         },
